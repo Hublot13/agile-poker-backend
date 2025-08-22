@@ -46,8 +46,16 @@ app.get("/health", async (req, res) => {
   const count = await mongoose.connection.db
     .collection("rooms")
     .countDocuments();
+
+  const indianTime = new Date()
+    .toLocaleString("en-GB", {
+      timeZone: "Asia/Kolkata",
+      hour12: false,
+    })
+    .replace(",", "");
+
   console.log(
-    `[${new Date().toISOString()}] /health ping received. Current room count: ${count}`
+    `[${indianTime}] /health ping received. Current room count: ${count}`
   );
   res.json({ status: "ok", roomCount: count });
 });
