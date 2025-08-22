@@ -1,18 +1,19 @@
-name: Random /health Ping
-
+name: Health Ping
 on:
   schedule:
-    - cron: "*/10 * * * *" 
-  workflow_dispatch: 
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
 
 jobs:
   ping-health:
     runs-on: ubuntu-latest
     steps:
-      - name: Random delay 10-14 min
+      - name: Random delay 10-13 min
         run: |
-          RANDOM_DELAY=$(( RANDOM % 241 + 600 )) # 600-840 sec
-          echo "Sleeping $RANDOM_DELAY seconds before ping"
+          RANDOM_DELAY=$(( RANDOM % 181 + 600 ))
+          MINUTES=$(( RANDOM_DELAY / 60 ))
+          SECONDS=$(( RANDOM_DELAY % 60 ))
+          echo "Sleeping $MINUTES minutes and $SECONDS seconds before ping"
           sleep $RANDOM_DELAY
 
       - name: Ping /health
