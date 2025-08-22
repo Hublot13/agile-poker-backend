@@ -46,6 +46,9 @@ app.get("/health", async (req, res) => {
   const count = await mongoose.connection.db
     .collection("rooms")
     .countDocuments();
+  console.log(
+    `[${new Date().toISOString()}] /health ping received. Current room count: ${count}`
+  );
   res.json({ status: "ok", roomCount: count });
 });
 
