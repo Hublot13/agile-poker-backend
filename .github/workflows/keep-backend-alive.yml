@@ -1,21 +1,14 @@
 name: Health Ping
+
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 jobs:
   ping-health:
     runs-on: ubuntu-latest
     steps:
-      - name: Random delay 10-13 min
-        run: |
-          RANDOM_DELAY=$(( RANDOM % 181 + 600 ))
-          MINUTES=$(( RANDOM_DELAY / 60 ))
-          SECONDS=$(( RANDOM_DELAY % 60 ))
-          echo "Sleeping $MINUTES minutes and $SECONDS seconds before ping"
-          sleep $RANDOM_DELAY
-
       - name: Ping /health
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.HEALTH_URL }}")
