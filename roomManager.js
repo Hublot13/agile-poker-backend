@@ -189,12 +189,20 @@ class RoomManager {
   }
 
   async cleanupInactiveRooms() {
-    const cutoff = new Date(Date.now() - 15 * 1000);
-    const result = await Room.deleteMany({
+    const cutoff = new Date(Date.now() - 60 * 60 * 1000); // 60 minutes
+
+    const roomsToDelete = await Room.find({
       lastActivity: { $lt: cutoff },
-      users: { $not: { $elemMatch: { connected: true } } },
     });
-    console.log(`🧹 Cleaned ${result.deletedCount} inactive rooms`);
+
+    const roomCodes = roomsToDelete.map((room) => room.code);
+
+    if (roomCodes.length > 0) {
+      const result = await Room.deleteMany({ code: { $in: roomCodes } });
+      console.log(`🧹 Cleaned ${result.deletedCount} inactive rooms`);
+    }
+
+    return roomCodes;
   }
 
   async makeHost(roomCode, newHostSocketId) {
@@ -202,7 +210,7 @@ class RoomManager {
     if (!room) throw new Error("Room not found");
 
     const currentHost = room.users.find((u) => u.isHost);
-    console.log(`SOKCET ID OF NEW HOST ${newHostSocketId}`)
+    console.log(`SOKCET ID OF NEW HOST ${newHostSocketId}`);
     const newHost = room.users.find((u) => u.socketId === newHostSocketId);
     if (!newHost) throw new Error("User not found");
 

@@ -55,16 +55,36 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+
+app.get("/cleanupDB", async (req, res) => {
+  const indianTime = new Date()
+    .toLocaleString("en-GB", {
+      timeZone: "Asia/Kolkata",
+      hour12: false,
+    })
+    .replace(",", "");
+
+  console.log(`[${indianTime}] /cleanupDB call received. Initiating cleanup.`);
+
+  try {
+    const deletedRooms = await roomManager.cleanupInactiveRooms();
+    deletedRooms.forEach((roomCode) => {
+      io.to(roomCode).emit("removed");
+    });
+    res.json({
+      status: "success",
+      message: `Cleaned up ${deletedRooms.length} inactive rooms.`,
+      deletedRooms: deletedRooms,
+    });
+  } catch (error) {
+    console.error("Cleanup error:", error);
+    res.status(500).json({ status: "error", message: error.message });
+  }
+});
+
 setupSocketHandlers(io);
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-// Cleanup interval only in production
-// if (process.env.NODE_ENV === "production") {
-//   setInterval(() => {
-//     roomManager.cleanupInactiveRooms();
-//   }, 15 * 1000);
-// }
