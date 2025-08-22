@@ -8,6 +8,7 @@ on:
 jobs:
   ping-health:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Ping /health
         run: |
