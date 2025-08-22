@@ -196,6 +196,26 @@ class RoomManager {
     });
     console.log(`🧹 Cleaned ${result.deletedCount} inactive rooms`);
   }
+
+  async makeHost(roomCode, newHostSocketId) {
+    const room = await Room.findOne({ code: roomCode });
+    if (!room) throw new Error("Room not found");
+
+    const currentHost = room.users.find((u) => u.isHost);
+    console.log(`SOKCET ID OF NEW HOST ${newHostSocketId}`)
+    const newHost = room.users.find((u) => u.socketId === newHostSocketId);
+    if (!newHost) throw new Error("User not found");
+
+
+    if (currentHost) currentHost.isHost = false;
+    newHost.isHost = true;
+
+    room.hostSocketId = newHost.socketId;
+    room.lastActivity = new Date();
+
+    await room.save();
+    return room;
+  }
 }
 
 export const roomManager = new RoomManager();

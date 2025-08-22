@@ -72,12 +72,13 @@ export function setupSocketHandlers(io) {
         if (!session) throw new Error("No active session");
 
         const room = await roomManager.startVoting(session.roomCode, socket.id);
+        const stats = await roomManager.getRoomStats(session.roomCode);
 
         io.to(session.roomCode).emit("voting-started", {
           roundState: room.roundState,
         });
 
-        callback({ success: true });
+        callback({ success: true, stats });
         console.log(`🗳️ Voting started in room: ${session.roomCode}`);
       } catch (error) {
         console.error("Start voting error:", error);
@@ -160,7 +161,7 @@ export function setupSocketHandlers(io) {
           if (user && room) {
             const stats = await roomManager.getRoomStats(roomCode);
             io.to(roomCode).emit("room-updated", room);
-            const newHost = null;
+            let newHost = null;
             if (wasHost) {
               newHost =
                 room.users.find((u) => u.socketId === room.hostSocketId)
@@ -182,6 +183,57 @@ export function setupSocketHandlers(io) {
       } catch (error) {
         console.error("Leave room error:", error);
         if (callback) callback({ success: false, error: error.message });
+      }
+    });
+
+    socket.on("make-host", async ({ targetSocketId }, callback) => {
+      try {
+        const session = await roomManager.getUserSession(socket.id);
+        if (!session) throw new Error("No active session");
+
+        const room = await roomManager.makeHost(
+          session.roomCode,
+          targetSocketId
+        );
+        const newHostName = room.users.find(
+          (u) => u.socketId === targetSocketId
+        )?.name;
+        // Emit room updated with newHostName
+        io.to(session.roomCode).emit("room-updated", {
+          ...serializeRoom(room),
+          newHostName: newHostName,
+        });
+
+        console.log(
+          `👑 ${newHostName} is now the host of room ${session.roomCode}`
+        );
+        callback({ success: true });
+      } catch (error) {
+        console.error("Make host error:", error);
+        callback({ success: false, error: error.message });
+      }
+    });
+
+    socket.on("remove-user", async ({ targetSocketId }, callback) => {
+      try {
+        const result = await roomManager.leaveRoom(targetSocketId);
+        if (result) {
+          const { room, user, roomCode } = result;
+
+          // Notify only the removed user
+          io.to(targetSocketId).emit("removed");
+
+          // Emit updated room state to all remaining users
+          const updatedRoom = serializeRoom(room); // make sure this filters out disconnected users
+          io.to(roomCode).emit("room-updated", updatedRoom);
+
+          console.log(`🚪 ${user.name} was removed from room ${roomCode}`);
+        }
+
+        callback({ success: true });
+      } catch (error) {
+        console.error("Remove user error:", error);
+        callback({ success: false, error: error.message });
       }
     });
 

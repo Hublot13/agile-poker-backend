@@ -6,10 +6,15 @@ import cors from "cors";
 import { roomManager } from "./roomManager.js";
 import { setupSocketHandlers } from "./socketHandlers.js";
 import dotenv from "dotenv";
-dotenv.config();
+
+// Load local .env only if not in production
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: ".env.local" });
+}
 
 const app = express();
 const server = createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL,
@@ -32,7 +37,9 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("📦 MongoDB connected"))
+  .then(() => {
+    console.log("📦 MongoDB connected");
+  })
   .catch((err) => console.error("MongoDB error", err));
 
 app.get("/health", async (req, res) => {
@@ -43,13 +50,15 @@ app.get("/health", async (req, res) => {
 });
 
 setupSocketHandlers(io);
-console.log("Loaded MONGO_URI:", process.env.TEST);
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// setInterval(() => {
-//   roomManager.cleanupInactiveRooms();
-// }, 15 * 1000);
+// Cleanup interval only in production
+// if (process.env.NODE_ENV === "production") {
+//   setInterval(() => {
+//     roomManager.cleanupInactiveRooms();
+//   }, 15 * 1000);
+// }

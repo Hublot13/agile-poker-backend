@@ -1,22 +1,38 @@
 # Node modules
 node_modules/
 
-# Environment variables
-.env
-
 # Logs
 logs/
 *.log
 npm-debug.log*
 
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
 # OS files
 .DS_Store
 Thumbs.db
 
-# Build output (if any)
+# Build output 
 dist/
 build/
 
-# IDE settings
+# IDE / editor settings
 .vscode/
 .idea/
+
+# Coverage / testing
+coverage/
+*.lcov
+
+# Mac / Linux temp files
+*.swp
+*~
+
+# Misc temporary files
+*.bak
+*.tmp
+
