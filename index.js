@@ -42,11 +42,7 @@ mongoose
   })
   .catch((err) => console.error("MongoDB error", err));
 
-app.get("/health", async (req, res) => {
-  const count = await mongoose.connection.db
-    .collection("rooms")
-    .countDocuments();
-
+app.get("/health", (req, res) => {
   const indianTime = new Date()
     .toLocaleString("en-GB", {
       timeZone: "Asia/Kolkata",
@@ -54,10 +50,9 @@ app.get("/health", async (req, res) => {
     })
     .replace(",", "");
 
-  console.log(
-    `[${indianTime}] /health ping received. Current room count: ${count}`
-  );
-  res.json({ status: "ok", roomCount: count });
+  console.log(`[${indianTime}] /health ping received.`);
+
+  res.json({ status: "ok" });
 });
 
 setupSocketHandlers(io);
